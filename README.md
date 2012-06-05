@@ -35,7 +35,7 @@ Copyright (C) 2012 Hacker School
 Distributed under the terms of the AGPL
 
 ## Run server through repl
-(use 'ring.utils.serve)
+(use 'ring.util.serve)
 (require 'hsnews.server :as server)
 (serve server/handler)
 (stop-server)
