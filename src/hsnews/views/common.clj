@@ -40,8 +40,8 @@
 (defpartial user-link [hs_id]
   (link-to {:class "userLink"} (str "/users/" hs_id) (users/get-username hs_id)))
 
-(defpartial comment-link [c_id]
-  (link-to {:class "userLink"} (str "/comments/" c_id) " link"))
+(defpartial comment-link [c_id text]
+  (link-to {:class "userLink"} (str "/comments/" c_id) text))
 
 (defpartial upvote-comment-link [com]
   (if (comments/is-author? com) [:span.isAuthor.indicator "*"])
@@ -57,13 +57,14 @@
              (upvote-comment-link com)
              [:span.points (comment-points com)]
              [:span.author (user-link author)]
-             [:span.date (utils/time-ago ts)]
-             [:span.link (comment-link _id)]])
+             [:span.date (str (utils/time-ago ts) " ")]
+             [:span.link (comment-link _id "link")]])
 
-(defpartial comment-item [{:keys [body] :as com}]
+(defpartial comment-item [{:keys [_id body] :as com}]
             [:li
              (comment-subtext com)
-             [:div.commentBody (string/replace body "\n" "<br />")]])
+             [:div.commentBody (string/replace body "\n" "<br />")]
+             [:div.subtext.comment (comment-link _id "reply")]])
 
 ; TODO Make this function less horrible and inefficient.
 ; (no need for extra map over comments)
