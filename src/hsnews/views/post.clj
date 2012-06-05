@@ -15,7 +15,7 @@
 
 (defpartial post-fields [{:keys [title link]}]
             [:ul
-              [:li 
+              [:li
                 (text-field {:placeholder "Title"} :title title)
                 (vali/on-error :title common/error-text)]
               [:li
@@ -47,15 +47,16 @@
              (render "/submit" post))))
 
 ; Comments
-(defpartial comment-form [{:keys [body]}
+(defpartial comment-form [comment
                           {:keys [_id]}]
             (form-to {:class "commentForm"} [:post "/comments/create"]
               [:ul
                [:li
-                (text-area :body body)
+                (text-area :body)
                 (vali/on-error :body common/error-text)]]
-               (hidden-field :post_id _id)
-               (submit-button "add comment")))
+              (hidden-field :post_id _id)
+              (hidden-field :parent_id (:_id comment))
+              (submit-button "add comment")))
 
 ; View post / discuss page
 (defpartial post-page [{:keys [title link author ts _id] :as post}
@@ -97,3 +98,12 @@
 (defpage "/newcomments" {}
          (common/layout
           (common/comment-list (comments/get-recent-comments))))
+
+(defpage "/comments/:_id" {:keys [_id]}
+  (let [comment (posts/id->comment _id)
+        post (posts/id->post (.toString (:post_id comment)))]
+    (common/layout
+     (common/comment-item comment)
+     (comment-form comment post))))
+
+;; (defpage [:post "/comments/:_id"])

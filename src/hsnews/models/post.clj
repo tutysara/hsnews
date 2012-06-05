@@ -28,8 +28,12 @@
       (assoc :voters {(users/current-user) true})
       (assoc :last-updated (coerce/to-long ts)))))
 
-(defn id->post [id]
-  (fetch-by-id :posts (object-id id)))
+(defn id->object [model]
+  (fn [id]
+    (fetch-by-id model (object-id id))))
+
+(def id->post (id->object :posts))
+(def id->comment (id->object :comments))
 
 ;Decay
 (defn get-posts-to-decay []

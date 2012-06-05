@@ -42,17 +42,17 @@
                     (user-fields user)
                    (submit-button {:class "submit"} "Log in"))))
 
-;(defpage "/register" {:as user}
-;         (common/layout
-;          [:h2 "Create Account"]
-;          (form-to [:post "/users/create"]
-;                   (user-fields user)
-;                   (submit-button {:class "submit"} "create account"))))
-;
-;(defpage [:post "/users/create"] {:as user}
-;         (if (users/add! user)
-;           (resp/redirect "/")
-;           (render "/register" user)))
+(defpage "/register" {:as user}
+         (common/layout
+          [:h2 "Create Account"]
+          (form-to [:post "/users/create"]
+                   (user-fields user)
+                   (submit-button {:class "submit"} "create account"))))
+
+(defpage [:post "/users/create"] {:as user}
+         (if (users/add! user)
+           (resp/redirect "/")
+           (render "/register" user)))
 
 (defpage [:post "/sessions/create"] {:as user}
          (let [return-uri (session/flash-get)]

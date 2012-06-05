@@ -22,8 +22,8 @@
                        (users/current-user)
                        (= uri "/login")
                        (= uri "/sessions/create")
-                       ;(= uri "/register") ;; uncomment to allow registration
-                       ;(= uri "/users/create") ;; uncomment to allow registration
+                       (= uri "/register") ;; uncomment to allow registration
+                       (= uri "/users/create") ;; uncomment to allow registration
                        (re-find #"^/(css)|(img)|(js)|(favicon)" uri))
             (session/flash-put! (get-request-uri))
             (resp/redirect "/login")))
@@ -40,6 +40,9 @@
 (defpartial user-link [hs_id]
   (link-to {:class "userLink"} (str "/users/" hs_id) (users/get-username hs_id)))
 
+(defpartial comment-link [c_id]
+  (link-to {:class "userLink"} (str "/comments/" c_id) " link"))
+
 (defpartial upvote-comment-link [com]
   (if (comments/is-author? com) [:span.isAuthor.indicator "*"])
   (if-not (comments/voted? com)
@@ -49,12 +52,13 @@
             (let [comment-count (fetch-count :comments :where {:post_id _id})]
               (link-to {:title score} (posts/post-url post) (str comment-count " comment" (if (not= comment-count 1) "s" "")))))
 
-(defpartial comment-subtext [{:keys [ts author points post_id] :as com}]
+(defpartial comment-subtext [{:keys [ts author points post_id _id] :as com}]
             [:div.subtext.comment
-              (upvote-comment-link com)
-              [:span.points (comment-points com)]
-              [:span.author (user-link author)]
-              [:span.date (utils/time-ago ts)]])
+             (upvote-comment-link com)
+             [:span.points (comment-points com)]
+             [:span.author (user-link author)]
+             [:span.date (utils/time-ago ts)]
+             [:span.link (comment-link _id)]])
 
 (defpartial comment-item [{:keys [body] :as com}]
             [:li
@@ -111,7 +115,7 @@
                  (link-to "/" [:img.logo {:src "/img/hacker-school-logo.png"}])
                  [:h1#logo
                   (link-to "/" "Hacker School News")]
-                 [:ul 
+                 [:ul
                   [:li (link-to "/newest" "new")]
                   [:li (link-to "/newcomments" "comments")]
                   [:li (link-to "http://www.hackruiter.com/companies" "jobs")]
