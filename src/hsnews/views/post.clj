@@ -69,7 +69,7 @@
                 [:span.domain "(" (common/extract-domain-from-url link) ")"]]
                (common/post-subtext post)
                (comment-form comment post)
-               (common/comment-list (posts/get-comments post))]))
+               (common/comment-list (posts/get-comments-tree post))]))
 
 (defpage "/posts/:_id" {:keys [_id]}
          (common/layout
@@ -77,9 +77,16 @@
 
 (defpage [:post "/comments/create"] {:keys [body post_id parent_id]}
          (let [comment {:body body :post_id post_id :parent_id parent_id}
-               post_url (str "/posts/" (.toString post_id))]
-          (if (comments/add! comment)
-            (resp/redirect post_url) ; should redirect to post page
+               post_url (str "/posts/" (.toString post_id))
+               reply (comments/add! comment)]
+           (if reply
+             (do
+               (if (seq parent_id)
+                 (let [parent (comments/id->comment parent_id)]
+                   (update! :comments parent
+                            (assoc parent :replies (conj (:replies parent)
+                                                         (db-ref :comments (:_id  reply)))))))
+               (resp/redirect post_url)) ; should redirect to post page
             (render post_url {:_id (.toString post_id)} comment))))
 
 ; Upvoting

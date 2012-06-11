@@ -60,21 +60,19 @@
              [:span.date (str (utils/time-ago ts) " ")]
              [:span.link (comment-link _id "link")]])
 
-(defpartial comment-item [{:keys [_id body] :as com}]
+(defpartial comment-item [{:keys [_id body] :as com} & {:keys [indent] :or {indent 0}}]
             [:li
              (comment-subtext com)
              [:div.commentBody (string/replace body "\n" "<br />")]
-             [:div.subtext.comment (comment-link _id "reply")]])
+             [:div.subtext.comment (comment-link _id "reply")]
+             (if (:replies com)
+               [:ol.replies (map #(comment-item % :indent (inc indent))
+                         (:replies com))])])
 
-; TODO Make this function less horrible and inefficient.
-; (no need for extra map over comments)
 (defpartial comment-list [comments]
-            (let [posts (fetch-by-ids :posts (map #(get % :post_id) comments))
-                  posts-by-id (reduce #(assoc %1 (get %2 :_id) %2) {} posts)
-                  comments (map #(assoc % :post_title (get (get posts-by-id (get % :post_id)) :title)) comments)]
-              (if (not-empty comments)
-                [:ol.commentList (map comment-item comments)]
-                [:div.empty "No comments"])))
+    (if (not-empty comments)
+      [:ol.commentList (map comment-item comments)]
+      [:div.empty "No comments"]))
 
 (defpartial upvote-link [post]
   (if (posts/is-author? post) [:span.isAuthor.indicator "*"])

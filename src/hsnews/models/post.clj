@@ -1,9 +1,12 @@
 (ns hsnews.models.post
-  (:use somnium.congomongo)
+  (:use [hsnews.models.congomongo] ;; Import Redefined with-ref-fetching
+        [somnium.congomongo :exclude [with-ref-fetching]])
   (:require [clj-time.core :as ctime]
             [clj-time.coerce :as coerce]
             [noir.validation :as vali]
-            [hsnews.models.user :as users]))
+            [hsnews.models.user :as users]
+            [clojure.walk :as walk]))
+
 
 (def posts-per-page 30)
 
@@ -28,12 +31,12 @@
       (assoc :voters {(users/current-user) true})
       (assoc :last-updated (coerce/to-long ts)))))
 
-(defn id->object [model]
-  (fn [id]
-    (fetch-by-id model (object-id id))))
+(defn id->post [id]
+  (fetch-by-id :posts (object-id id)))
 
-(def id->post (id->object :posts))
-(def id->comment (id->object :comments))
+(defn id->comment [id]
+  (first
+   ((with-ref-fetching #(fetch :comments :where {:_id (object-id %)} :sort {:points -1})) id)))
 
 ;Decay
 (defn get-posts-to-decay []
@@ -88,7 +91,23 @@
   (str "/posts/" _id "/upvote"))
 
 (defn get-comments [{:keys [_id]}]
-  (fetch :comments :where {:post_id _id} :sort {:points -1}))
+  (fetch :comments :where {:post_id _id :parent_id ""} :sort {:points -1}))
+
+(defn point-sort [coll]
+  (sort-by :points > coll))
+
+(defn sort-comments-tree [tree]
+  (let [sorted-coll (map (fn [x]
+                           (let [replies (:replies x)]
+                             (if replies
+                               (assoc x :replies (sort-comments-tree replies))
+                               x)))
+                         tree)]
+    (point-sort sorted-coll)))
+
+(defn get-comments-tree [post]
+  (let [tree ((with-ref-fetching get-comments) post)]
+    (sort-comments-tree tree)))
 
 (defn get-by-user [hs_id]
   (fetch :posts :where {:author hs_id}))

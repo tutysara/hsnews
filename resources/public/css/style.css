@@ -208,10 +208,14 @@ a.bookmarkletLink {
   width: 408px;
 }
 
-ol.commentList {
+ol {
   list-style-type: none;
   font-size: 9pt;
   color: #828282;
+}
+
+ol.replies {
+    padding-left: 40px;
 }
 
 ol.commentList li {
