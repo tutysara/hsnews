@@ -1,6 +1,7 @@
 (ns hsnews.models.post
   (:use [hsnews.models.congomongo] ;; Import Redefined with-ref-fetching
-        [somnium.congomongo :exclude [with-ref-fetching]])
+        [somnium.congomongo :exclude [with-ref-fetching]]
+        [hsnews.utils])
   (:require [clj-time.core :as ctime]
             [clj-time.coerce :as coerce]
             [noir.validation :as vali]
@@ -10,15 +11,22 @@
 
 (def posts-per-page 30)
 
-(defn valid? [{:keys [title link]}]
+(defn valid? [{:keys [title link desc]}]
   (vali/rule (vali/has-value? title)
              [:title "Please enter a title"])
   (vali/rule (vali/max-length? title 255)
              [:title "Titles can be no more than 255 characters"])
-  (vali/rule (vali/has-value? link)
+  (vali/rule (not
+              (and
+               (vali/has-value? desc)
+               (vali/has-value? link)))
+               [:link "Description can be present only when there is no link"])
+  (vali/rule (or (vali/has-value? link) (vali/has-value? desc))
              [:title "Please enter a link"])
-  (vali/rule (vali/max-length? link 2048)
+  (vali/rule (or (vali/max-length? link 2048) (vali/has-value? desc))
              [:title "Links can be no more than 2048 characters"])
+  (vali/rule (or (url? link) (vali/has-value? desc))
+             [:link "Not a valid link format"])
   (not (vali/errors? :title :link)))
 
 (defn prepare-new [post]

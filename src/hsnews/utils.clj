@@ -1,7 +1,8 @@
 (ns hsnews.utils
   (:use [clojure.data.json :only [read-json]])
   (:require [clj-time.core :as ctime]
-            [clj-time.coerce :as coerce]))
+            [clj-time.coerce :as coerce])
+  (:import java.net.URL))
 
 (defn load-dotcloud-config []
   (try
@@ -9,7 +10,7 @@
       (def data-mongodb-url (config :DATA_MONGODB_URL))
       (def auth-url (config :AUTH_URL)))
     (catch Exception e
-      (def data-mongodb-url "mongodb://:@localhost:27017/hsnews")
+      (def data-mongodb-url "mongodb://:@127.0.0.1:27017/hsnews")
       (def auth-url nil))))
 
 (defn time-ago [ts]
@@ -26,3 +27,10 @@
         (> diff onehour) (str (quot diff onehour) " hour ago")
         (> diff (* oneminute 2)) (str (quot diff oneminute) " minutes ago")
         (<= diff (* oneminute 2)) "1 minute ago"))))
+
+(defn url?
+  "Returns truthy if the url is valid"
+  [url]
+  (try
+    (and (URL. url) true)
+    (catch Exception e false)))

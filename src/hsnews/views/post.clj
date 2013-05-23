@@ -13,14 +13,19 @@
             [clojure.string :as string]))
 
 
-(defpartial post-fields [{:keys [title link]}]
+(defpartial post-fields [{:keys [title link desc]}]
             [:ul
-              [:li
-                (text-field {:placeholder "Title"} :title title)
-                (vali/on-error :title common/error-text)]
-              [:li
-                (text-field {:placeholder "Link"} :link link)
-                (vali/on-error :link common/error-text)]])
+             [:li
+              (text-field {:placeholder "Title" :size 50} :title title)
+              (vali/on-error :title common/error-text)]
+             [:li
+              (text-field {:placeholder "Link" :size 50} :link link)
+              (vali/on-error :link common/error-text)]
+             [:li
+              (str "or")]
+             [:li
+              (text-area {:placeholder "Description" :rows 4 :cols 50} :desc desc)
+              (vali/on-error :desc common/error-text)]])
 
 ; Main view
 (defpage "/" []
@@ -40,8 +45,8 @@
                     (submit-button "submit"))
            [:div.disclaimer "Posts are visible only to Hacker Schoolers. Nevertheless, use common sense when posting sensitive stuff."]))
 
-(defpage [:post "/submit/create"] {:keys [link title]}
-         (let [post {:link link :title title}]
+(defpage [:post "/submit/create"] {:keys [link title desc]}
+         (let [post {:link link :title title :desc desc}]
            (if (posts/add! post)
              (resp/redirect "/")
              (render "/submit" post))))
@@ -79,6 +84,7 @@
          (let [comment {:body body :post_id post_id :parent_id parent_id}
                post_url (str "/posts/" (.toString post_id))
                reply (comments/add! comment)]
+           (print (str "****** REPLY ***** " reply))
            (if reply
              (do
                (if (seq parent_id)

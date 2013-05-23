@@ -1,0 +1,8 @@
+* Issues
+** DONE Validate URLs on submission
+** DONE Enable registration
+** TODO Twitter/Facebook/Google integration
+** DONE Enable input of text in data model
+** DONE Enable showing description in comment screen
+** DONE Enable showing links to comments screen in post when there is no link
+** TODO Comment validation for empty comments not working

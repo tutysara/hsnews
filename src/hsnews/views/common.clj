@@ -86,14 +86,15 @@
               [:span.date (utils/time-ago ts)]
               [:span.commentCount (comment-count post)]])
 
-(defpartial post-item [{:keys [link title author ts] :as post}]
-            (when post
-             [:li.post
-              [:h3.title
-                (upvote-link post)
-                (link-to {:class "postLink"} link title)
-                [:span.domain "(" (extract-domain-from-url link) ")"]]
-              (post-subtext post)]))
+(defpartial post-item [{:keys [link title author ts desc] :as post}]
+  (when post
+    (let [ link (if desc (posts/post-url post) link)]
+      [:li.post
+       [:h3.title
+        (upvote-link post)
+        (link-to {:class "postLink"} link title)
+       [:span.domain "(" (or (extract-domain-from-url link) "Self") ")"]]
+      (post-subtext post)])))
 
 (defpartial post-list [items]
             (if (not-empty items)
@@ -106,18 +107,18 @@
 (defpartial layout [& content]
             (html5
               [:head
-               [:title "Hacker School News"]
+               [:title "MTP News"]
                (include-css "/css/style.css")]
               [:body
                [:div#wrapper
                 [:header
                  (link-to "/" [:img.logo {:src "/img/hacker-school-logo.png"}])
                  [:h1#logo
-                  (link-to "/" "Hacker School News")]
+                  (link-to "/" "MTP News")]
                  [:ul
                   [:li (link-to "/newest" "new")]
                   [:li (link-to "/newcomments" "comments")]
-                  [:li (link-to "http://www.hackruiter.com/companies" "jobs")]
+                 #_ [:li (link-to "http://www.hackruiter.com/companies" "jobs")]
                   [:li (link-to "/submit" "submit")]]
                  (let [hs_id (users/current-user)]
                   (if hs_id
@@ -125,13 +126,13 @@
                       [:span.username (user-link hs_id) " (" (users/get-karma hs_id) ")"]
                       (link-to "/logout" "log out")]
                     [:div.user.loggedout
-                      ;(link-to "/register" "register") ;; Uncomment to allow registration
+                      (link-to "/register" "register") ;; Uncomment to allow registration
                       (link-to "/login" "log in")]))]
                 [:div#content content]
                 [:footer
                  [:ul
                   [:li (link-to "/lists" "Lists")]
                   [:li (link-to "/bookmarklet" "Bookmarklet")]
-                  [:li (link-to "http://www.hackerschool.com" "Hacker School")]
-                  [:li (link-to "https://github.com/nicholasbs/hsnews/issues" "Feature Requests")]
-                  [:li (link-to "https://github.com/nicholasbs/hsnews" "Source on Github")]]]]]))
+                  #_[:li (link-to "http://www.hackerschool.com" "Hacker School")]
+                  [:li (link-to "https://github.com/tutysara/hsnews/issues" "Feature Requests")]
+                  [:li (link-to "https://github.com/tutysara/hsnews" "Source on Github")]]]]]))
