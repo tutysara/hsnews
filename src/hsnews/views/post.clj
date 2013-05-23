@@ -43,7 +43,7 @@
            (form-to {:class "postForm"} [:post "/submit/create"]
                     (post-fields post)
                     (submit-button "submit"))
-           [:div.disclaimer "Posts are visible only to Hacker Schoolers. Nevertheless, use common sense when posting sensitive stuff."]))
+           [:div.disclaimer "Posts are visible only to everyone, use common sense when posting sensitive stuff."]))
 
 (defpage [:post "/submit/create"] {:keys [link title desc]}
          (let [post {:link link :title title :desc desc}]
@@ -84,16 +84,27 @@
          (let [comment {:body body :post_id post_id :parent_id parent_id}
                post_url (str "/posts/" (.toString post_id))
                reply (comments/add! comment)]
-           (print (str "****** REPLY ***** " reply))
+          
            (if reply
              (do
+               ;;(.println System/out reply)
+               ;;(.println System/out comment)
+               ;; (.println System/out (vali/on-error :body common/error-text))
                (if (seq parent_id)
                  (let [parent (comments/id->comment parent_id)]
                    (update! :comments parent
                             (assoc parent :replies (conj (:replies parent)
                                                          (db-ref :comments (:_id  reply)))))))
                (resp/redirect post_url)) ; should redirect to post page
-            (render post_url {:_id (.toString post_id)} comment))))
+             (do
+               ;;(.println System/out "****** REPLY ***** ")
+                ;;(.println System/out post_url)
+               ;; (.println System/out reply)
+                ;;(.println System/out comment)
+                ;;(.println System/out (vali/on-error :body common/error-text))
+                ;;(resp/redirect post_url)))))
+                (render "/posts/:_id" {:_id (.toString post_id)})))))
+                ;;(render post_url {:_id (.toString post_id)} comment)))))
 
 ; Upvoting
 (defpage "/posts/:_id/upvote" {:keys [_id]}

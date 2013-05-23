@@ -38,14 +38,26 @@
 (defn store! [user]
   (update! :users user user))
 
+(defn valid-email? [email]
+  (vali/rule (vali/is-email? email)
+             [:email "Bad email id format"])
+  (vali/rule (not (fetch-one :users :where {:email email}))
+             [:email "That email id is already in use"])
+;; (vali/rule (vali/min-length? username 2)
+;;             [:username "Username must be at least 2 characters"]
+;;  (vali/rule (vali/max-length? username 20)
+;;             [:username "Username must be less than 20 characters"])
+  (not (vali/errors? :email)))
+
 (defn valid-username? [username]
   (vali/rule (not (fetch-one :users :where {:username username}))
-                  [:username "That username is already in use"])
+             [:username "That username is already in use"])
   (vali/rule (vali/min-length? username 2)
              [:username "Username must be at least 2 characters"])
   (vali/rule (vali/max-length? username 20)
-             [:username "Username must be less than 20 characters"])
+             [:username "username must be less than 20 characters"])
   (not (vali/errors? :username :password)))
+
 
 (defn valid-password? [password]
   (vali/rule (vali/min-length? password 8)
@@ -94,7 +106,9 @@
 
 (defn local-auth [username password]
   "Used if auth-url is nil."
-  (let [user (fetch-one :users :where {:username username})
+  (let [user (or
+              (fetch-one :users :where {:username username})
+              (fetch-one :users :where {:email username})) ;; search using username or email
         stored-pass (:password user)]
     (if (and stored-pass (crypt/compare password stored-pass))
         (autologin! user)
@@ -105,14 +119,15 @@
     (remote-auth username password)
     (local-auth username password)))
 
-(defn add! [{:keys [username password] :as user}]
+(defn add! [{:keys [username password email] :as user}]
   (let [ts (ctime/now)]
     (when (valid-username? username)
-      (when (valid-password? password)
-        (do
-          (-> user
-            (assoc :ts (coerce/to-long ts))
-            (assoc :password (crypt/encrypt password))
-            (assoc :karma 0)
-            (assoc :hs_id (str (increment_hs_id)))
-            (store!)))))))
+      (when (valid-email? email) 
+        (when (valid-password? password)
+          (do
+            (-> user
+                (assoc :ts (coerce/to-long ts))
+                (assoc :password (crypt/encrypt password))
+                (assoc :karma 0)
+                (assoc :hs_id (str (increment_hs_id)))
+                (store!))))))))

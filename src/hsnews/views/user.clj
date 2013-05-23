@@ -26,27 +26,40 @@
                   title (if title title username)]
               (link-to (str "/users/" hs_id "/posts") title)))
 
-(defpartial user-fields [{:keys [username] :as user}]
-            [:ul.userForm
-             [:li
-              (text-field {:placeholder "E-mail"} :username username)
-              (vali/on-error :username common/error-text)]
-             [:li
-              (password-field {:placeholder "Password"} :password)
-              (vali/on-error :password common/error-text)]])
+(defpartial user-fields-reg [{:keys [username email] :as user}]
+  [:ul.userForm
+   [:li
+    (text-field {:placeholder "Email"} :email email)
+    (vali/on-error :email common/error-text)]
+   [:li
+    (text-field {:placeholder "Username"} :username username)
+    (vali/on-error :username common/error-text)]
+   [:li
+    (password-field {:placeholder "Password"} :password)
+    (vali/on-error :password common/error-text)]])
+
+(defpartial user-fields-login [{:keys [username email] :as user}]
+  [:ul.userForm
+   [:li
+    (text-field {:placeholder "Username/Email"} :username username)
+    (vali/on-error :username common/error-text)]
+   [:li
+    (password-field {:placeholder "Password"} :password)
+    (vali/on-error :password common/error-text)]])
+
 
 (defpage "/login" {:as user}
          (common/layout
           [:h2 "Log in"]
           (form-to [:post "/sessions/create"]
-                    (user-fields user)
+                    (user-fields-login user)
                    (submit-button {:class "submit"} "Log in"))))
 
 (defpage "/register" {:as user}
          (common/layout
           [:h2 "Create Account"]
           (form-to [:post "/users/create"]
-                   (user-fields user)
+                   (user-fields-reg user)
                    (submit-button {:class "submit"} "create account"))))
 
 (defpage [:post "/users/create"] {:as user}
