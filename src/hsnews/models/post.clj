@@ -99,7 +99,7 @@
   (str "/posts/" _id "/upvote"))
 
 (defn get-comments [{:keys [_id]}]
-  (fetch :comments :where {:post_id _id :parent_id ""} :sort {:points -1}))
+  (fetch :comments :where {:post_id _id :parent_id ""} :sort {:points -1 :ts -1})) ;; insert new comment at top
 
 (defn point-sort [coll]
   (sort-by :points > coll))

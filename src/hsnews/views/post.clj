@@ -43,7 +43,7 @@
            (form-to {:class "postForm"} [:post "/submit/create"]
                     (post-fields post)
                     (submit-button "submit"))
-           [:div.disclaimer "Posts are visible only to everyone, use common sense when posting sensitive stuff."]))
+           [:div.disclaimer "Posts are visible to everyone, use common sense when posting sensitive stuff."]))
 
 (defpage [:post "/submit/create"] {:keys [link title desc]}
          (let [post {:link link :title title :desc desc}]
@@ -121,7 +121,7 @@
 
 (defpage "/newcomments" {}
          (common/layout
-          (common/comment-list (comments/get-recent-comments))))
+          (common/comment-list-recent (comments/get-recent-comments))))
 
 (defpage "/comments/:_id" {:keys [_id]}
   (let [comment (posts/id->comment _id)

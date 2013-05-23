@@ -56,6 +56,7 @@
             [:div.subtext.comment
              (upvote-comment-link com)
              [:span.points (comment-points com)]
+             (.println System/out (str "com = " com))
              [:span.author (user-link author)]
              [:span.date (str (utils/time-ago ts) " ")]
              [:span.link (comment-link _id "link")]])
@@ -67,12 +68,25 @@
              [:div.subtext.comment (comment-link _id "reply")]
              (if (:replies com)
                [:ol.replies (map #(comment-item % :indent (inc indent))
-                         (:replies com))])])
+                                 (:replies com))])])
+(defpartial comment-item-recent [{:keys [_id body] :as com}] ;; don't walk replies
+            [:li
+             (comment-subtext com)
+             [:div.commentBody (string/replace body "\n" "<br />")]
+             [:div.subtext.comment (comment-link _id "reply")]])
+             
 
 (defpartial comment-list [comments]
     (if (not-empty comments)
       [:ol.commentList (map comment-item comments)]
       [:div.empty "No comments"]))
+
+
+(defpartial comment-list-recent [comments] ;; don't walk replies
+    (if (not-empty comments)
+      [:ol.commentList (map comment-item-recent comments)]
+      [:div.empty "No comments"]))
+
 
 (defpartial upvote-link [post]
   (if (posts/is-author? post) [:span.isAuthor.indicator "*"])
@@ -93,7 +107,7 @@
        [:h3.title
         (upvote-link post)
         (link-to {:class "postLink"} link title)
-       [:span.domain "(" (or (extract-domain-from-url link) "Self") ")"]]
+       [:span.domain "(" (or (extract-domain-from-url link) "Self") ")"]] ;; tag as self for description posts
       (post-subtext post)])))
 
 (defpartial post-list [items]
@@ -118,6 +132,7 @@
                  [:ul
                   [:li (link-to "/newest" "new")]
                   [:li (link-to "/newcomments" "comments")]
+                 #_ [:li (link-to "/posts" "posts")]
                  #_ [:li (link-to "http://www.hackruiter.com/companies" "jobs")]
                   [:li (link-to "/submit" "submit")]]
                  (let [hs_id (users/current-user)]
