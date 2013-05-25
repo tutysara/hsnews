@@ -19,14 +19,17 @@
 
 (pre-route "/*" {:keys [uri]}
            (when-not (or
-                       (users/current-user)
-                       (= uri "/login")
-                       (= uri "/sessions/create")
-                       (= uri "/register") ;; uncomment to allow registration
-                       (= uri "/users/create") ;; uncomment to allow registration
-                       (re-find #"^/(css)|(img)|(js)|(favicon)" uri))
-            (session/flash-put! (get-request-uri))
-            (resp/redirect "/login")))
+                      (users/current-user)
+                      (= uri "/login")
+                      (= uri "/") ;; can view main page without registration
+                      (re-find #"/posts/.*" uri) ;; can view posts without registration
+                      (= uri "/sessions/create")
+                      (= uri "/register") ;; uncomment to allow registration
+                      (= uri "/users/create") ;; uncomment to allow registration
+                      (re-find #"^/(css)|(img)|(js)|(favicon)" uri))
+             (.println System/out (str "uri = " uri))
+             (session/flash-put! (get-request-uri))
+             (resp/redirect "/login")))
 
 (defn extract-domain-from-url [url]
   (second (re-find #"^(?:[^:/]*://)?(?:www\.)?([^/\?]+)(?:.*)$" url)))
@@ -102,9 +105,11 @@
 
 (defpartial post-item [{:keys [link title author ts desc] :as post}]
   (when post
-    (let [ link (if desc (posts/post-url post) link)]
+    (let [ link (if (seq link) link (posts/post-url post))]
       [:li.post
        [:h3.title
+        ;;(.println System/out (str "desc = " desc "link = " link ))
+        ;;(.println System/out (str "post = " post ))
         (upvote-link post)
         (link-to {:class "postLink"} link title)
        [:span.domain "(" (or (extract-domain-from-url link) "Self") ")"]] ;; tag as self for description posts
@@ -132,7 +137,7 @@
                  [:ul
                   [:li (link-to "/newest" "new")]
                   [:li (link-to "/newcomments" "comments")]
-                 #_ [:li (link-to "/posts" "posts")]
+                  [:li (link-to "/posts" "posts")]
                  #_ [:li (link-to "http://www.hackruiter.com/companies" "jobs")]
                   [:li (link-to "/submit" "submit")]]
                  (let [hs_id (users/current-user)]
@@ -141,13 +146,33 @@
                       [:span.username (user-link hs_id) " (" (users/get-karma hs_id) ")"]
                       (link-to "/logout" "log out")]
                     [:div.user.loggedout
-                      (link-to "/register" "register") ;; Uncomment to allow registration
-                      (link-to "/login" "log in")]))]
+                     [:ul
+                      [:li (link-to "/register" "register")] ;; Uncomment to allow registration
+                      [:li (link-to "/login" "log in")]]]))]
                 [:div#content content]
                 [:footer
                  [:ul
                   [:li (link-to "/lists" "Lists")]
                   [:li (link-to "/bookmarklet" "Bookmarklet")]
+                  [:li (link-to "/about" "About")]
                   #_[:li (link-to "http://www.hackerschool.com" "Hacker School")]
                   [:li (link-to "https://github.com/tutysara/hsnews/issues" "Feature Requests")]
                   [:li (link-to "https://github.com/tutysara/hsnews" "Source on Github")]]]]]))
+
+
+(defpage "/about" {}
+  (layout
+   [:ul.listLink
+    [:li "We live in a crazy world, tech parks are even crazier island - we come and go almost daily yet doesn't know much about them."
+     [:li "There are always questions like"
+      [:ul
+       [:li "Where will I get the best food in and around this place?"]
+       [:li "What are the companies located here and what technologies they used?"]
+       [:li "What are the events and conferences happening this week?"]
+       [:li "Do they have any walkins going in the neighbourhood?"]
+       [:li "or even"]
+       [:li "Which is that nice place to sit with your girl friend?"]
+       [:li "Which bar servers better, where can I take my team for a drink?"]
+       [:li "Where to go for the next team outing etc"]]]]
+    [:li "Tech Park News allows us to share info and help each other better understand our working neighbourhood and also to share experiences and information that helps us in work and life"]]))
+

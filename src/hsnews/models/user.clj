@@ -14,10 +14,14 @@
   (session/get :hs_id))
 
 (defn get-user [hs_id]
-  (fetch-one :users :where {:hs_id hs_id}))
+  (fetch-one :users :where {:hs_id (str hs_id)}))
 
 (defn get-username [hs_id]
-  ((get-user hs_id) :username))
+  (let [user (get-user hs_id)]
+    (do
+      (.println System/out (str "hs_id" hs_id))
+      (.println System/out (str "user - " user))
+       (:username user))))
 
 (defn get-comments [hs_id]
   (fetch :comments :where {:author hs_id} :sort {:ts -1}))

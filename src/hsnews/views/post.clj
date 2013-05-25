@@ -6,6 +6,7 @@
         somnium.congomongo)
   (:require [hsnews.models.post :as posts]
             [hsnews.models.comment :as comments]
+            [hsnews.models.user :as user]
             [noir.validation :as vali]
             [noir.response :as resp]
             [clj-time.coerce :as coerce]
@@ -61,20 +62,23 @@
                 (vali/on-error :body common/error-text)]]
               (hidden-field :post_id _id)
               (hidden-field :parent_id (:_id comment))
-              (submit-button "add comment")))
+              (submit-button "add comment"))
+            [:div.disclaimer "Comments are visible to everyone, use common sense when posting sensitive stuff. Do not post comments that doesn't add value like - [+1, upvoted, I second it etc]. Do not post comments that are socially objectionable. No personal insults. No advertisements or promotions outside context or which disctacts conversion. Lets keep it clean. Account will be banned on repeated violation"])
 
 ; View post / discuss page
 (defpartial post-page [{:keys [title link author ts _id] :as post}
                        {:as comment}]
-            (when post
-              [:div.postPage
-               [:h1.title
-                (common/upvote-link post)
-                (link-to link title)
-                [:span.domain "(" (common/extract-domain-from-url link) ")"]]
-               (common/post-subtext post)
-               (comment-form comment post)
-               (common/comment-list (posts/get-comments-tree post))]))
+  (when post
+    (let [ link (if link link (posts/post-url post))] ;; redifine link to use post link for description posts
+      (.println System/out (str "link = " link))
+      [:div.postPage
+       [:h1.title
+        (common/upvote-link post)
+        (link-to link title)
+        [:span.domain "(" (or (common/extract-domain-from-url link) "Self") ")"]]
+       (common/post-subtext post)
+       (comment-form comment post)
+       (common/comment-list (posts/get-comments-tree post))])))
 
 (defpage "/posts/:_id" {:keys [_id]}
          (common/layout
@@ -129,5 +133,9 @@
     (common/layout
      (common/comment-item comment)
      (comment-form comment post))))
+
+(defpage "/posts" []
+  (common/layout
+   (common/post-list (posts/get-by-user (user/current-user)))))
 
 ;; (defpage [:post "/comments/:_id"])
