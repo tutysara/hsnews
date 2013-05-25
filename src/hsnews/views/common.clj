@@ -24,6 +24,7 @@
                       (= uri "/") ;; can view main page without registration
                       (re-find #"/posts/.*" uri) ;; can view posts without registration
                       (= uri "/sessions/create")
+                      (= uri "/bookmarklet")
                       (= uri "/register") ;; uncomment to allow registration
                       (= uri "/users/create") ;; uncomment to allow registration
                       (re-find #"^/(css)|(img)|(js)|(favicon)" uri))
@@ -121,13 +122,24 @@
               [:div.empty "No posts"]))
 
 (defpartial error-text [errors]
-            [:span.error (string/join " " errors)])
+  [:span.error (string/join " " errors)])
+
+(defpartial google-analytics []
+  [:script "
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-41203760-1', 'techparknews.in');
+  ga('send', 'pageview');"])
 
 (defpartial layout [& content]
             (html5
               [:head
                [:title "MTP News"]
-               (include-css "/css/style.css")]
+               (include-css "/css/style.css")
+               (google-analytics)]
               [:body
                [:div#wrapper
                 [:header
@@ -136,13 +148,17 @@
                   (link-to "/" "MTP News")]
                  [:ul
                   [:li (link-to "/newest" "new")]
-                  [:li (link-to "/newcomments" "comments")]
-                  [:li (link-to "/posts" "posts")]
-                 #_ [:li (link-to "http://www.hackruiter.com/companies" "jobs")]
+                  [:li (link-to "/newcomments" "comments")]                 
+                  [:li (link-to "/leaders" "leaderboard")]
+                  #_ [:li (link-to "http://www.hackruiter.com/companies" "jobs")]
+
+                  [:li (link-to "/posts" "my-posts")]
                   [:li (link-to "/submit" "submit")]]
+                 
                  (let [hs_id (users/current-user)]
                   (if hs_id
                     [:div.user.loggedin
+                      
                       [:span.username (user-link hs_id) " (" (users/get-karma hs_id) ")"]
                       (link-to "/logout" "log out")]
                     [:div.user.loggedout
@@ -156,9 +172,15 @@
                   [:li (link-to "/bookmarklet" "Bookmarklet")]
                   [:li (link-to "/about" "About")]
                   #_[:li (link-to "http://www.hackerschool.com" "Hacker School")]
-                  [:li (link-to "https://github.com/tutysara/hsnews/issues" "Feature Requests")]
-                  [:li (link-to "https://github.com/tutysara/hsnews" "Source on Github")]]]]]))
+                  [:li (link-to "https://github.com/techparknews/hsnews/issues" "Feature Requests")]
+                  [:li (link-to "https://github.com/techparknews/hsnews" "Source on Github")]]]]]))
 
+(defpage "/bookmarklet" {}
+         (let [bookmarklet-url "javascript:window.location=%22http://www.techparknew.in/submit?link=%22+encodeURIComponent(document.location)+%22&title=%22+encodeURIComponent(document.title)"]
+           (layout
+             [:h2 "Bookmarklet"]
+             [:p "Inspired by the " (link-to "http://ycombinator.com/bookmarklet.html" "Hacker News bookmarklet") " we created one just for Techpark News. When you click on the bookmarklet, it will submit the page you're on. To install, drag this link to your browser toolbar:"]
+             (link-to {:class "bookmarkletLink"} bookmarklet-url "post to Techpark News"))))
 
 (defpage "/about" {}
   (layout
